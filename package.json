@@ -1,6 +1,6 @@
 {
   "name": "aventurine",
-  "description": "A project that help to predict gacha and warp-planner for Honkai: Star Rail",
+  "description": "A project that help to plan for gacha pulling in Honkai: Star Rail",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
