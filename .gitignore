@@ -1,0 +1,11 @@
+# VSCode Settings
+.vscode
+
+# Dependencies
+.venv 
+node_modules
+
+# Build output
+dist
+
+

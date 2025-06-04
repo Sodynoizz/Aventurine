@@ -1,0 +1,20 @@
+{
+  "name": "aventurine",
+  "description": "A project that help to predict gacha and warp-planner for Honkai: Star Rail",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "tsx src/index.ts"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@types/node": "^22.15.29",
+    "fs": "^0.0.1-security",
+    "readline": "^1.3.0",
+    "readline-sync": "^1.4.10"
+  },
+  "devDependencies": {
+    "@types/readline-sync": "^1.4.8",
+    "tsx": "^4.19.4"
+  }
+}
