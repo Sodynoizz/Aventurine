@@ -8,4 +8,5 @@ node_modules
 # Build output
 dist
 
-
+# Cache
+model/__pycache__

@@ -2,15 +2,15 @@ import { readFileSync, writeFileSync } from 'fs'
 import { question, questionInt } from 'readline-sync'
 
 import DefaultConfig from '../config/config'
-import PullsPlan from '../utils/pull-plans'
+import WarpsCalculator from '../utils/warpCalculator'
 
 class WarpPlanner {
   config: DefaultConfig
-  pullsPlan: PullsPlan | null
+  warpsPlan: WarpsCalculator | null
 
   constructor() {
     this.config = new DefaultConfig()
-    this.pullsPlan = null
+    this.warpsPlan = null
   }
 
   readCache(): boolean {
@@ -18,13 +18,14 @@ class WarpPlanner {
       const data = readFileSync(this.config.cacheFile, 'utf8')
       const record = JSON.parse(data)
 
-      this.pullsPlan = new PullsPlan(
-        record.stellarJades,
-        record.oneiricShards,
-        record.vouchers,
-        record.starlightShop,
-        record.emberShop,
-        record.specialPass
+      this.warpsPlan = new WarpsCalculator(
+        record.pulls,
+        record.pityCharacter,
+        record.pityLightCone,
+        record.guaranteedCharacter,
+        record.guaranteedLightCone,
+        record.currentEilodonLevel,
+        record.currentSuperimpositionLevel
       )
 
       console.log('Cached Record: ', record)
@@ -36,43 +37,43 @@ class WarpPlanner {
   }
 
   promptUser(): void {
-    const stellarJades = questionInt('How many Stellar Jades do you have? : ')
-    const oneiricShards = questionInt('How many Oneiric Shards do you have? : ')
-    const vouchers = questionInt('How many vouchers days do you have left? : ')
-    const starlightShop = questionInt('How many Undying Starlight do you have? : ')
-    const emberShop = questionInt('How many Undying Ember do you have? : ')
-    const specialPass = questionInt('How many Special Passes do you have? : ')
+    const pulls = questionInt('How many pulls available do you have: ')
+    const pityCharacter = questionInt('How many Character Pity do you have? : ')
+    const pityLightCone = questionInt('How many Lightcone Pity do you have? : ')
+    const guaranteedCharacter = question('Do you have a guaranteed character? (yes/no) : ').toLowerCase() === "yes"
+    const guaranteedLightCone = question('Do you have a guaranteed lightcone? (yes/no) : ').toLowerCase() === "yes"
+    const currentEilodonLevel = questionInt('What is your current Eilodon Level? (If NONE type -1) : ')
+    const currentSuperimpositionLevel = questionInt('What is your current Superimposition Level? (If NONE type 0) : ')
     const saveRecord = question('Do you want to save this record? (yes/no) : ')
 
-    this.config.saveRecord = saveRecord.toLowerCase() === 'yes'
-    this.pullsPlan = new PullsPlan(
-      stellarJades,
-      oneiricShards,
-      vouchers,
-      starlightShop,
-      emberShop,
-      specialPass
+    this.config.saveWarpsPlanRecord = saveRecord.toLowerCase() === 'yes'
+    this.warpsPlan = new WarpsCalculator(
+      pulls,
+      pityCharacter,
+      pityLightCone,
+      guaranteedCharacter,
+      guaranteedLightCone,
+      currentEilodonLevel,
+      currentSuperimpositionLevel
     )
+
   }
 
   saveToCache(): void {
     const filePath = this.config.cacheFile
-    writeFileSync(filePath, JSON.stringify(this.pullsPlan.toJSON(), null, 2))
+    writeFileSync(filePath, JSON.stringify(this.warpsPlan.toJSON(), null, 2))
     console.log(`Record saved to ${filePath}`)
   }
 
   summary(): void {
-    if (this.pullsPlan) {
-      console.log(
-        `You can pull a total of ${this.pullsPlan.calculateTotalPulls()} times.`
-      )
+    if (this.warpsPlan) {
+      const result = this.warpsPlan.simulateWarps()
+      console.log('Warps Plan Summary:')
+      console.table(result)
     }
   }
 
   async compile(): Promise<void> {
-    console.log(this.config.version)
-    console.log(this.config.description)
-
     if (this.config.readFromCache) {
       if (!this.readCache()) {
         return
@@ -81,11 +82,11 @@ class WarpPlanner {
       this.promptUser()
     }
 
-    if (!this.pullsPlan) {
+    if (!this.warpsPlan) {
       return
     }
 
-    if (this.config.saveRecord) {
+    if (this.config.saveWarpsPlanRecord) {
       this.saveToCache()
     }    
     this.summary()

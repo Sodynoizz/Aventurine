@@ -1,5 +1,5 @@
 import DefaultConfig from '../config/config'
-import { PullsPlanData, StarlightMultiplier } from '../types/constant'
+import { Pulls, StarlightMultiplier } from '../types/warp'
 
 class PullsPlan {
   stellarJades: number
@@ -9,6 +9,8 @@ class PullsPlan {
   emberShop: number
   specialPass: number
   config: DefaultConfig
+  pityCharacter: number
+  pityLightCone: number
 
   constructor(
     stellarJades: number,
@@ -16,7 +18,7 @@ class PullsPlan {
     vouchers: number,
     starlightShop: number,
     emberShop: number,
-    specialPass: number
+    specialPass: number,
   ) {
     this.stellarJades = stellarJades
     this.oneiricShards = oneiricShards
@@ -27,25 +29,34 @@ class PullsPlan {
     this.config = new DefaultConfig()
   }
 
-  calculateRefund(totalPulls: number): number {
-    return Math.floor((StarlightMultiplier[this.config.refundMode] ?? 0) * totalPulls)
+  calculateAllPullsWithRefunds(totalPulls: number): Record<string, number> {
+    const refunds: Record<string, number> = {}
+
+    for (const mode in StarlightMultiplier) {
+      if (Object.prototype.hasOwnProperty.call(StarlightMultiplier, mode)) {
+        const multiplier =
+          StarlightMultiplier[mode as keyof typeof StarlightMultiplier]
+        refunds[mode] = Math.floor(multiplier * totalPulls) + totalPulls
+      }
+    }
+
+    return refunds
   }
 
-  calculateTotalPulls(): number {
+  calculateInitialPulls(): number {
     const totalJades =
       this.stellarJades + this.oneiricShards + this.vouchers * 90
-    let totalPulls = Math.floor(this.emberShop / 90) > 5 ? 5 : 0
+    let initialPulls = Math.floor(this.emberShop / 90) > 5 ? 5 : 0
 
-    totalPulls +=
+    initialPulls +=
       Math.floor(totalJades / 160) +
       Math.floor(this.starlightShop / 20) +
       this.specialPass
-    totalPulls += this.calculateRefund(totalPulls)
 
-    return totalPulls
+    return initialPulls
   }
 
-  toJSON(): PullsPlanData {
+  toJSON(): Pulls {
     return {
       stellarJades: this.stellarJades,
       oneiricShards: this.oneiricShards,
@@ -53,7 +64,7 @@ class PullsPlan {
       starlightShop: this.starlightShop,
       emberShop: this.emberShop,
       specialPass: this.specialPass,
-      totalPulls: this.calculateTotalPulls(),
+      initialPulls: this.calculateInitialPulls(),
     }
   }
 }
